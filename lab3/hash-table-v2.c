@@ -32,7 +32,7 @@ struct hash_table_v2 *hash_table_v2_create()
 	assert(hash_table != NULL);
 	for (size_t i = 0; i < HASH_TABLE_CAPACITY; ++i) {
 		struct hash_table_entry *entry = &hash_table->entries[i];
-		if (!pthread_mutex_init(&entry->mutex, NULL)) {	// Create mutex per entry
+		if (pthread_mutex_init(&entry->mutex, NULL)) {	// Create mutex per entry
 			exit(errno);
 		}
 		SLIST_INIT(&entry->list_head);
@@ -113,7 +113,7 @@ void hash_table_v2_destroy(struct hash_table_v2 *hash_table)
 		struct hash_table_entry *entry = &hash_table->entries[i];
 		struct list_head *list_head = &entry->list_head;
 		struct list_entry *list_entry = NULL;
-		if (!pthread_mutex_destroy(&entry->mutex)) { // destroy mutex for each entry
+		if (pthread_mutex_destroy(&entry->mutex)) { // destroy mutex for each entry
 			exit(errno);
 		}	
 		while (!SLIST_EMPTY(list_head)) {
