@@ -17,7 +17,6 @@ SLIST_HEAD(list_head, list_entry);
 
 struct hash_table_entry {
 	struct list_head list_head;
-	pthread_mutex_t* mutex; // Pointer to mutex declared by hash_table_v1
 };
 
 struct hash_table_v1 {
