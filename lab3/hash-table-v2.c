@@ -17,7 +17,7 @@ SLIST_HEAD(list_head, list_entry);
 
 struct hash_table_entry {
 	struct list_head list_head;
-	pthread_mutex_t mutex;			// mutex per table entry to restrict access to list_entry
+	pthread_mutex_t* mutex;			// mutex per table entry to restrict access to list_entry
 };
 
 struct hash_table_v2 {
@@ -30,7 +30,9 @@ struct hash_table_v2 *hash_table_v2_create()
 	assert(hash_table != NULL);
 	for (size_t i = 0; i < HASH_TABLE_CAPACITY; ++i) {
 		struct hash_table_entry *entry = &hash_table->entries[i];
-		pthread_mutex_init(&entry->mutex, NULL);
+		if (!pthread_mutex_init(entry->mutex, NULL)) {	// Create mutex per entry
+			exit(errno);
+		}
 		SLIST_INIT(&entry->list_head);
 	}
 	return hash_table;
@@ -75,14 +77,14 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
                              uint32_t value)
 {
 	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);
-	struct list_head *list_head = &hash_table_entry->list_head;
-	pthread_mutex_lock(&hash_table_entry->mutex);
+	struct list_head *list_head = &hash_table_entry->list_head;	// can leave this outside as the address will not change
+	pthread_mutex_lock(hash_table_entry->mutex);
 	struct list_entry *list_entry = get_list_entry(hash_table, key, list_head);
 
 	/* Update the value if it already exists */
 	if (list_entry != NULL) {
 		list_entry->value = value;
-		pthread_mutex_unlock(&hash_table_entry->mutex);
+		pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
 		return;
 	}
 
@@ -90,7 +92,7 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 	list_entry->key = key;
 	list_entry->value = value;
 	SLIST_INSERT_HEAD(list_head, list_entry, pointers);
-	pthread_mutex_unlock(&hash_table_entry->mutex);
+	pthread_mutex_unlock(hash_table_entry->mutex);
 }
 
 uint32_t hash_table_v2_get_value(struct hash_table_v2 *hash_table,
@@ -109,7 +111,9 @@ void hash_table_v2_destroy(struct hash_table_v2 *hash_table)
 		struct hash_table_entry *entry = &hash_table->entries[i];
 		struct list_head *list_head = &entry->list_head;
 		struct list_entry *list_entry = NULL;
-		pthread_mutex_destroy(&entry->mutex);
+		if (!pthread_mutex_destroy(entry->mutex)) { // destroy mutex for each entry
+			exit(errno);
+		}	
 		while (!SLIST_EMPTY(list_head)) {
 			list_entry = SLIST_FIRST(list_head);
 			SLIST_REMOVE_HEAD(list_head, pointers);
