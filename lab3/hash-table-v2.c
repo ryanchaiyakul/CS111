@@ -90,10 +90,9 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 		list_entry->value = value;
 		return;
 	}
+	list_entry = calloc(1, sizeof(struct list_entry));
 	SLIST_INSERT_HEAD(list_head, list_entry, pointers);
 	pthread_mutex_unlock(&hash_table_entry->mutex);
-
-	list_entry = calloc(1, sizeof(struct list_entry));
 	list_entry->key = key;
 	list_entry->value = value;
 	
