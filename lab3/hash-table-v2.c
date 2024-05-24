@@ -7,6 +7,8 @@
 
 #include <pthread.h>
 
+#include <errno.h>
+
 struct list_entry {
 	const char *key;
 	uint32_t value;
