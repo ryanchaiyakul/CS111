@@ -13,6 +13,7 @@ struct list_entry {
 	const char *key;
 	uint32_t value;
 	SLIST_ENTRY(list_entry) pointers;
+	pthread_mutex_t mutex;
 };
 
 SLIST_HEAD(list_head, list_entry);
@@ -85,16 +86,17 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 
 	/* Update the value if it already exists */
 	if (list_entry != NULL) {
-		list_entry->value = value;
 		pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
+		list_entry->value = value;
 		return;
 	}
+	SLIST_INSERT_HEAD(list_head, list_entry, pointers);
+	pthread_mutex_unlock(&hash_table_entry->mutex);
 
 	list_entry = calloc(1, sizeof(struct list_entry));
 	list_entry->key = key;
 	list_entry->value = value;
-	SLIST_INSERT_HEAD(list_head, list_entry, pointers);
-	pthread_mutex_unlock(&hash_table_entry->mutex);
+	
 }
 
 uint32_t hash_table_v2_get_value(struct hash_table_v2 *hash_table,
