@@ -11,7 +11,6 @@ struct list_entry {
 	const char *key;
 	uint32_t value;
 	SLIST_ENTRY(list_entry) pointers;
-	pthread_mutex_t mutex;
 };
 
 SLIST_HEAD(list_head, list_entry);
@@ -91,6 +90,7 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 	struct list_entry *list_entry = get_list_entry(hash_table, key, list_head);
 	/* Update the value if it already exists */
 	if (list_entry != NULL) {
+		printf("updated");
 		list_entry->value = value;
 		error2 = pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
 		if (error1) {
@@ -102,7 +102,7 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 		return;
 	}
 	SLIST_INSERT_HEAD(list_head, list_entry_precomp, pointers);
-	error2 = pthread_mutex_unlock(&hash_table_entry->mutex);
+	pthread_mutex_unlock(&hash_table_entry->mutex);
 
 	// save error checking for after
 	if (error1) {
