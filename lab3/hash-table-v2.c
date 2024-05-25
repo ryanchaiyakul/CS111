@@ -79,40 +79,37 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
                              uint32_t value)
 {
 	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);
-	
-	int error = pthread_mutex_lock(&hash_table_entry->mutex);
-	if (error) { 
-		exit(error);
-	}
+
+	// precompute the list entry as most cases we need to do it anyways
+	struct list_entry* list_entry_precomp = calloc(1, sizeof(struct list_entry));
+	list_entry_precomp->key = key;
+	list_entry_precomp->value = value;
+	int error1, error2;
+
+	error1 = pthread_mutex_lock(&hash_table_entry->mutex);
 	struct list_head *list_head = &hash_table_entry->list_head;
 	struct list_entry *list_entry = get_list_entry(hash_table, key, list_head);
 	/* Update the value if it already exists */
 	if (list_entry != NULL) {
 		list_entry->value = value;
-		error = pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
-		if (error) { 
-			exit(error);
+		error2 = pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
+		if (error1) {
+			exit(error1);
+		}
+		if (error2) { 
+			exit(error2);
 		}
 		return;
 	}
-	error = pthread_mutex_unlock(&hash_table_entry->mutex);
-	if (error) { 
-		exit(error);
-	}
+	SLIST_INSERT_HEAD(list_head, list_entry_precomp, pointers);
+	error2 = pthread_mutex_unlock(&hash_table_entry->mutex);
 
-	list_entry = calloc(1, sizeof(struct list_entry));
-	list_entry->key = key;
-	list_entry->value = value;
-
-	error = pthread_mutex_lock(&hash_table_entry->mutex);
-	if (error) { 
-		exit(error);
+	// save error checking for after
+	if (error1) {
+		exit(error1);
 	}
-	list_head = &hash_table_entry->list_head;
-	SLIST_INSERT_HEAD(list_head, list_entry, pointers);
-	error = pthread_mutex_unlock(&hash_table_entry->mutex);
-	if (error) { 
-		exit(error);
+	if (error2) { 
+		exit(error2);
 	}
 }
 

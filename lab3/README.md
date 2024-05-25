@@ -38,7 +38,9 @@ TODO how to run and results
 Version 1 is a little slower/faster than the base version. As we have to deal with the overhead of locks both with the locking and unlocking itself as instructions and spin waiting where a thread that is currently in the mutual exclusion section is preempted by a thread that is waiting for the lock which can only spin during its turn to run.
 
 ## Second Implementation
-In the `hash_table_v2_add_entry` function, I allowed parallel access to different hash table entries by locking the operation at a lower granularity. In particular, I locked the access at the entry level as modifying a linked list under a different hash does not have a race condition with the current hash. In terms of two threads trying to add an entry to the same linked list, the data race occurs when a thread 
+In the `hash_table_v2_add_entry` function, I allowed parallel access to different hash table entries by locking the operation at a lower granularity. In particular, I locked the access at the entry level as modifying a linked list under a different hash does not have a race condition with the current hash. 
+
+In terms of two threads trying to add an entry to the same linked list, the data race occurs when a thread adds its entry as the new head, but another thread has the previous head as its local variable and the previous thread's action effecively does not happen.
 
 ### Performance
 ```shell
