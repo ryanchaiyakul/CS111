@@ -78,7 +78,10 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
                              uint32_t value)
 {
 	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);
-
+	// precompute the list entry as most cases we need to do it anyways
+	struct list_entry* list_entry_precomp = calloc(1, sizeof(struct list_entry));
+	list_entry_precomp->key = key;
+	list_entry_precomp->value = value;
 	pthread_mutex_lock(&hash_table_entry->mutex);
 	struct list_head *list_head = &hash_table_entry->list_head;
 	struct list_entry *list_entry = get_list_entry(hash_table, key, list_head);
@@ -88,10 +91,6 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 		pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
 		return;
 	}
-	// precompute the list entry as most cases we need to do it anyways
-	struct list_entry* list_entry_precomp = calloc(1, sizeof(struct list_entry));
-	list_entry_precomp->key = key;
-	list_entry_precomp->value = value;
 	SLIST_INSERT_HEAD(list_head, list_entry_precomp, pointers);
 	pthread_mutex_unlock(&hash_table_entry->mutex);
 }
