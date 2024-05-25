@@ -81,7 +81,7 @@ void hash_table_v1_add_entry(struct hash_table_v1 *hash_table,
 	if (error) {
 		exit(error);
 	}
-	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);\
+	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);
 	struct list_head *list_head = &hash_table_entry->list_head;
 	struct list_entry *list_entry = get_list_entry(hash_table, key, list_head);
 
