@@ -7,8 +7,6 @@
 
 #include <pthread.h>
 
-#include <errno.h>
-
 struct list_entry {
 	const char *key;
 	uint32_t value;
@@ -34,8 +32,9 @@ struct hash_table_v1 *hash_table_v1_create()
 		struct hash_table_entry *entry = &hash_table->entries[i];
 		SLIST_INIT(&entry->list_head);
 	}
-	if (pthread_mutex_init(&hash_table->mutex, NULL)) { // dynamically initialize mutex
-		exit(errno);
+	int error = pthread_mutex_init(&hash_table->mutex, NULL); // dynamically initialize mutex
+	if (error) {
+		exit(error);
 	}	
 	return hash_table;
 }
@@ -78,8 +77,11 @@ void hash_table_v1_add_entry(struct hash_table_v1 *hash_table,
                              const char *key,
                              uint32_t value)
 {
-	pthread_mutex_lock(&hash_table->mutex);	// Lock the entire add entry process for safety
-	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);
+	int error = pthread_mutex_lock(&hash_table->mutex);	// Lock the entire add entry process for safety
+	if (error) {
+		exit(error);
+	}
+	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);\
 	struct list_head *list_head = &hash_table_entry->list_head;
 	struct list_entry *list_entry = get_list_entry(hash_table, key, list_head);
 
@@ -93,7 +95,10 @@ void hash_table_v1_add_entry(struct hash_table_v1 *hash_table,
 	list_entry->key = key;
 	list_entry->value = value;
 	SLIST_INSERT_HEAD(list_head, list_entry, pointers);
-	pthread_mutex_unlock(&hash_table->mutex); // Lock the entire add entry process for safety
+	error = pthread_mutex_unlock(&hash_table->mutex); // Lock the entire add entry process for safety
+	if (error) {
+		exit(error);
+	}
 }
 
 uint32_t hash_table_v1_get_value(struct hash_table_v1 *hash_table,
@@ -118,8 +123,9 @@ void hash_table_v1_destroy(struct hash_table_v1 *hash_table)
 			free(list_entry);
 		}
 	}
-	if (pthread_mutex_destroy(&hash_table->mutex)) {
-		exit(errno);
+	int error = pthread_mutex_destroy(&hash_table->mutex);
+	if (error) {
+		exit(error);
 	}
 	free(hash_table);
 }
