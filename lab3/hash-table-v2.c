@@ -7,8 +7,6 @@
 
 #include <pthread.h>
 
-#include <stdio.h>
-
 struct list_entry {
 	const char *key;
 	uint32_t value;
@@ -93,7 +91,6 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 	/* Update the value if it already exists */
 	if (list_entry != NULL) {
 		list_entry->value = value;
-		printf("wlrn");
 		error = pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise, has to happen before to preserve update order
 		if (error) { 
 			exit(error);
