@@ -79,6 +79,7 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
                              uint32_t value)
 {
 	struct hash_table_entry *hash_table_entry = get_hash_table_entry(hash_table, key);
+	
 	int error = pthread_mutex_lock(&hash_table_entry->mutex);
 	if (error) { 
 		exit(error);
@@ -88,7 +89,7 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 	/* Update the value if it already exists */
 	if (list_entry != NULL) {
 		list_entry->value = value;
-		int error = pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
+		error = pthread_mutex_unlock(&hash_table_entry->mutex);	// -5 points otherwise
 		if (error) { 
 			exit(error);
 		}
@@ -102,8 +103,8 @@ void hash_table_v2_add_entry(struct hash_table_v2 *hash_table,
 	list_entry = calloc(1, sizeof(struct list_entry));
 	list_entry->key = key;
 	list_entry->value = value;
-	
-	int error = pthread_mutex_lock(&hash_table_entry->mutex);
+
+	error = pthread_mutex_lock(&hash_table_entry->mutex);
 	if (error) { 
 		exit(error);
 	}
