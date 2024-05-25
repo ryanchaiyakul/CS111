@@ -88,6 +88,10 @@ void hash_table_v1_add_entry(struct hash_table_v1 *hash_table,
 	/* Update the value if it already exists */
 	if (list_entry != NULL) {
 		list_entry->value = value;
+		error = pthread_mutex_unlock(&hash_table->mutex); // Lock the entire add entry process for safety
+		if (error) {
+			exit(error);
+		}
 		return;
 	}
 
